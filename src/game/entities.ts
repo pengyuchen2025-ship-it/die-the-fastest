@@ -1,25 +1,40 @@
 import { Player, Spike, PoisonPool, HealingBottle, Pillar } from './types';
 import {
-  CANVAS_HEIGHT,
+  CANVAS_WIDTH, CANVAS_HEIGHT, WALL_THICKNESS,
   PLAYER_SIZE, PLAYER_MAX_HP,
-  SPIKE_SIZE, SPIKE_DAMAGE, SPIKE_OUT_DURATION, SPIKE_IN_DURATION, SPIKE_COOLDOWN,
-  BURST_SIZE, BURST_DAMAGE, BURST_OUT_DURATION, BURST_IN_DURATION, BURST_COOLDOWN,
-  PILLAR_SIZE, PILLAR_OUT_DURATION, PILLAR_IN_DURATION,
+  SPIKE_SIZE, SPIKE_DAMAGE, SPIKE_WARNING, SPIKE_ACTIVE, SPIKE_HIDDEN, SPIKE_COOLDOWN,
+  BURST_SIZE, BURST_DAMAGE, BURST_WARNING, BURST_ACTIVE, BURST_HIDDEN, BURST_COOLDOWN,
+  POISON_W, POISON_H, POISON_WARNING, POISON_ACTIVE, POISON_HIDDEN,
+  HEAL_W, HEAL_H, HEAL_WARNING, HEAL_ACTIVE, HEAL_HIDDEN,
+  PILLAR_SIZE, PILLAR_WARNING, PILLAR_ACTIVE, PILLAR_HIDDEN,
 } from './constants';
 
-// ─── Map layout (all values in canvas px) ─────────────────────────────────
-//
-//  Playable area: x 40..920, y 40..600
-//
-//  Player spawn:      (180, 300)
-//  Spike A:           top-left   (128, 105)   — size 44×44
-//  Spike B:           top-right  (728, 105)   — size 44×44
-//  Burst Spike:       bot-right  (765, 462)   — size 50×50
-//  Poison Pool:       bot-center (400, 458)   — 140×80
-//  Pillar A:          center-top (468, 152)   blocks path to Spike B
-//  Pillar B:          center-bot-right (618, 385)  blocks Poison→Burst path
-//  Pillar C:          center-bot-left  (338, 385)  adds route complexity
-//  Healing Bottle:    mid-center (318, 292)   — 24×30
+// ─── Spawn area ───────────────────────────────────────────────────────────
+// Entities spawn anywhere in the playable area, avoiding wall edges and HUD.
+const SPAWN_PAD   = 18;
+const SPAWN_TOP   = WALL_THICKNESS + 48; // leave room for HUD
+const SPAWN_BOT   = WALL_THICKNESS + 35; // leave room for bottom hint
+
+export function randomPos(w: number, h: number, avoidX = -999, avoidY = -999): { x: number; y: number } {
+  const minX = WALL_THICKNESS + SPAWN_PAD;
+  const maxX = CANVAS_WIDTH  - WALL_THICKNESS - w - SPAWN_PAD;
+  const minY = SPAWN_TOP;
+  const maxY = CANVAS_HEIGHT - SPAWN_BOT - h;
+
+  let x = 0, y = 0;
+  for (let i = 0; i < 20; i++) {
+    x = minX + Math.random() * (maxX - minX);
+    y = minY + Math.random() * (maxY - minY);
+    // Don't spawn directly on top of the player
+    const tooClose =
+      Math.abs(x + w / 2 - avoidX) < 90 &&
+      Math.abs(y + h / 2 - avoidY) < 90;
+    if (!tooClose) break;
+  }
+  return { x, y };
+}
+
+// ─── Player ───────────────────────────────────────────────────────────────
 
 export function createPlayer(): Player {
   return {
@@ -34,91 +49,114 @@ export function createPlayer(): Player {
   };
 }
 
+// ─── Spikes ───────────────────────────────────────────────────────────────
+// Stagger initial states so entities don't all appear at the same time.
+
 export function createSpikes(): Spike[] {
+  const p1 = randomPos(SPIKE_SIZE, SPIKE_SIZE);
+  const p2 = randomPos(SPIKE_SIZE, SPIKE_SIZE);
+  const p3 = randomPos(BURST_SIZE, BURST_SIZE);
+
   return [
     {
       id: 'spike_a',
-      x: 128, y: 105, w: SPIKE_SIZE, h: SPIKE_SIZE,
+      ...p1, w: SPIKE_SIZE, h: SPIKE_SIZE,
       type: 'normal',
-      cycleTimer: 0.45, // starts mid-out so it's immediately dangerous
-      isOut: true,
+      state: 'warning',          // already warning at game start
+      stateTimer: SPIKE_WARNING,
+      warningDuration: SPIKE_WARNING,
+      activeDuration: SPIKE_ACTIVE,
+      hiddenDuration: SPIKE_HIDDEN,
       damage: SPIKE_DAMAGE,
-      outDuration: SPIKE_OUT_DURATION,
-      inDuration: SPIKE_IN_DURATION,
       hitCooldown: SPIKE_COOLDOWN,
     },
     {
       id: 'spike_b',
-      x: 728, y: 105, w: SPIKE_SIZE, h: SPIKE_SIZE,
+      ...p2, w: SPIKE_SIZE, h: SPIKE_SIZE,
       type: 'normal',
-      cycleTimer: 0.0, // starts retracted — player must wait or time arrival
-      isOut: false,
+      state: 'hidden',           // appears after a short delay
+      stateTimer: 0.7,
+      warningDuration: SPIKE_WARNING,
+      activeDuration: SPIKE_ACTIVE,
+      hiddenDuration: SPIKE_HIDDEN,
       damage: SPIKE_DAMAGE,
-      outDuration: SPIKE_OUT_DURATION,
-      inDuration: SPIKE_IN_DURATION,
       hitCooldown: SPIKE_COOLDOWN,
     },
     {
       id: 'burst_spike',
-      x: 765, y: 462, w: BURST_SIZE, h: BURST_SIZE,
+      ...p3, w: BURST_SIZE, h: BURST_SIZE,
       type: 'burst',
-      cycleTimer: 0.3,
-      isOut: false,
+      state: 'hidden',
+      stateTimer: 1.4,           // appears a bit later
+      warningDuration: BURST_WARNING,
+      activeDuration: BURST_ACTIVE,
+      hiddenDuration: BURST_HIDDEN,
       damage: BURST_DAMAGE,
-      outDuration: BURST_OUT_DURATION,
-      inDuration: BURST_IN_DURATION,
       hitCooldown: BURST_COOLDOWN,
     },
   ];
 }
 
+// ─── Poison pool ──────────────────────────────────────────────────────────
+
 export function createPoisonPools(): PoisonPool[] {
+  const p = randomPos(POISON_W, POISON_H);
   return [
     {
       id: 'poison_a',
-      x: 400, y: 458, w: 140, h: 80,
+      ...p, w: POISON_W, h: POISON_H,
+      state: 'hidden',
+      stateTimer: 1.0,
+      warningDuration: POISON_WARNING,
+      activeDuration: POISON_ACTIVE,
+      hiddenDuration: POISON_HIDDEN,
       damageTimer: 0,
     },
   ];
 }
 
+// ─── Healing bottles ──────────────────────────────────────────────────────
+
 export function createHealingBottles(): HealingBottle[] {
+  const p = randomPos(HEAL_W, HEAL_H);
   return [
     {
       id: 'heal_a',
-      x: 318, y: 292, w: 24, h: 30,
-      active: true,
-      respawnTimer: 0,
+      ...p, w: HEAL_W, h: HEAL_H,
+      state: 'hidden',
+      stateTimer: 1.8,
+      warningDuration: HEAL_WARNING,
+      activeDuration: HEAL_ACTIVE,
+      hiddenDuration: HEAL_HIDDEN,
       bobTimer: 0,
     },
   ];
 }
 
+// ─── Pillars ──────────────────────────────────────────────────────────────
+
 export function createPillars(): Pillar[] {
+  const p1 = randomPos(PILLAR_SIZE, PILLAR_SIZE);
+  const p2 = randomPos(PILLAR_SIZE, PILLAR_SIZE);
+
   return [
     {
       id: 'pillar_a',
-      x: 468, y: 152, w: PILLAR_SIZE, h: PILLAR_SIZE,
-      cycleTimer: 0,       // starts out — blocks top-right path immediately
-      isOut: true,
-      outDuration: PILLAR_OUT_DURATION,
-      inDuration: PILLAR_IN_DURATION,
+      ...p1, w: PILLAR_SIZE, h: PILLAR_SIZE,
+      state: 'warning',
+      stateTimer: PILLAR_WARNING,
+      warningDuration: PILLAR_WARNING,
+      activeDuration: PILLAR_ACTIVE,
+      hiddenDuration: PILLAR_HIDDEN,
     },
     {
       id: 'pillar_b',
-      x: 618, y: 382, w: PILLAR_SIZE, h: PILLAR_SIZE,
-      cycleTimer: 1.0,     // offset so pillars don't all retract together
-      isOut: true,
-      outDuration: PILLAR_OUT_DURATION,
-      inDuration: PILLAR_IN_DURATION,
-    },
-    {
-      id: 'pillar_c',
-      x: 338, y: 382, w: PILLAR_SIZE, h: PILLAR_SIZE,
-      cycleTimer: 0.7,
-      isOut: false,
-      outDuration: PILLAR_OUT_DURATION,
-      inDuration: PILLAR_IN_DURATION,
+      ...p2, w: PILLAR_SIZE, h: PILLAR_SIZE,
+      state: 'hidden',
+      stateTimer: 1.2,
+      warningDuration: PILLAR_WARNING,
+      activeDuration: PILLAR_ACTIVE,
+      hiddenDuration: PILLAR_HIDDEN,
     },
   ];
 }

@@ -1,33 +1,31 @@
-import { GameState, Player } from './types';
+import { GameState, CyclingEntity, Player, EntityState } from './types';
 import { rectsOverlap, resolveOverlap } from './collision';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, WALL_THICKNESS,
   PLAYER_SPEED, PLAYER_MAX_HP,
   POISON_DAMAGE, POISON_INTERVAL,
-  HEAL_AMOUNT, HEAL_RESPAWN,
+  HEAL_AMOUNT,
   GAME_DURATION,
 } from './constants';
-import { createPlayer, createSpikes, createPoisonPools, createHealingBottles, createPillars } from './entities';
+import {
+  createPlayer, createSpikes, createPoisonPools,
+  createHealingBottles, createPillars, randomPos,
+} from './entities';
 
-// ─── Sound stubs (wire real audio here later) ─────────────────────────────
+// ─── Sound stubs ──────────────────────────────────────────────────────────
 export function playHitSound() {}
 export function playHealSound() {}
 export function playWinSound() {}
 export function playLoseSound() {}
 export function playPillarSound() {}
 
-let _floatId = 0;
+let _fid = 0;
 
 function spawnFloat(
-  state: GameState,
-  x: number, y: number,
-  text: string, color: string
+  state: GameState, x: number, y: number, text: string, color: string,
 ) {
   state.floatingTexts.push({
-    id: `f${_floatId++}`,
-    x, y, text, color,
-    life: 0.75,
-    maxLife: 0.75,
+    id: `f${_fid++}`, x, y, text, color, life: 0.75, maxLife: 0.75,
   });
 }
 
@@ -49,8 +47,12 @@ export function createInitialState(): GameState {
   };
 }
 
-// ─── Main update (called each frame) ─────────────────────────────────────
-// Mutates state in-place for performance (refs/maps etc.)
+export function resetState(state: GameState): void {
+  Object.assign(state, createInitialState());
+  state.keys = new Set();
+}
+
+// ─── Main update ──────────────────────────────────────────────────────────
 
 export function updateGame(state: GameState, dt: number): void {
   if (state.phase !== 'playing') return;
@@ -66,15 +68,12 @@ export function updateGame(state: GameState, dt: number): void {
   updateCooldowns(state, dt);
   updateFloats(state, dt);
 
-  // Flash decay
   const p = state.player;
   if (p.flashTimer > 0) p.flashTimer = Math.max(0, p.flashTimer - dt);
   else if (p.flashTimer < 0) p.flashTimer = Math.min(0, p.flashTimer + dt);
 
-  // Screen shake decay
   state.screenShake = Math.max(0, state.screenShake - dt * 6);
 
-  // Win / lose checks
   if (p.hp <= 0) {
     p.hp = 0;
     state.phase = 'win';
@@ -87,7 +86,36 @@ export function updateGame(state: GameState, dt: number): void {
   }
 }
 
-// ─── Movement & collision ─────────────────────────────────────────────────
+// ─── Entity state machine ─────────────────────────────────────────────────
+// Transition: hidden → warning (pick new random pos) → active → hidden → ...
+
+function advanceCycle(entity: CyclingEntity, dt: number, avoidX: number, avoidY: number): void {
+  entity.stateTimer -= dt;
+  if (entity.stateTimer > 0) return;
+
+  const overflow = entity.stateTimer; // negative, carry leftover time
+
+  switch (entity.state) {
+    case 'hidden': {
+      const pos = randomPos(entity.w, entity.h, avoidX, avoidY);
+      entity.x = pos.x;
+      entity.y = pos.y;
+      entity.state = 'warning';
+      entity.stateTimer = entity.warningDuration + overflow;
+      break;
+    }
+    case 'warning':
+      entity.state = 'active';
+      entity.stateTimer = entity.activeDuration + overflow;
+      break;
+    case 'active':
+      entity.state = 'hidden';
+      entity.stateTimer = entity.hiddenDuration + overflow;
+      break;
+  }
+}
+
+// ─── Movement ─────────────────────────────────────────────────────────────
 
 function updateMovement(state: GameState, dt: number) {
   const keys = state.keys;
@@ -98,23 +126,18 @@ function updateMovement(state: GameState, dt: number) {
   if (keys.has('ArrowUp')    || keys.has('w') || keys.has('W')) dy -= 1;
   if (keys.has('ArrowDown')  || keys.has('s') || keys.has('S')) dy += 1;
 
-  if (dx !== 0 && dy !== 0) {
-    // Normalize diagonal so speed stays constant
-    dx *= 0.7071;
-    dy *= 0.7071;
-  }
+  if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
 
   const speed = PLAYER_SPEED * dt;
   const p = state.player;
 
-  // Apply movement one axis at a time for clean wall sliding
   p.x += dx * speed;
   clampToRoom(p);
-  pushOutOfPillars(state, 'x');
+  pushOutOfPillars(state);
 
   p.y += dy * speed;
   clampToRoom(p);
-  pushOutOfPillars(state, 'y');
+  pushOutOfPillars(state);
 }
 
 function clampToRoom(p: Player) {
@@ -123,9 +146,9 @@ function clampToRoom(p: Player) {
   p.y = Math.max(W, Math.min(CANVAS_HEIGHT - W - p.h, p.y));
 }
 
-function pushOutOfPillars(state: GameState, _axis: 'x' | 'y') {
+function pushOutOfPillars(state: GameState) {
   for (const pillar of state.pillars) {
-    if (!pillar.isOut) continue;
+    if (pillar.state !== 'active') continue;
     const v = resolveOverlap(state.player, pillar);
     if (v) {
       state.player.x += v.dx;
@@ -139,12 +162,9 @@ function pushOutOfPillars(state: GameState, _axis: 'x' | 'y') {
 function updateSpikes(state: GameState, dt: number) {
   const p = state.player;
   for (const spike of state.spikes) {
-    spike.cycleTimer += dt;
-    const total = spike.outDuration + spike.inDuration;
-    if (spike.cycleTimer >= total) spike.cycleTimer -= total;
-    spike.isOut = spike.cycleTimer < spike.outDuration;
+    advanceCycle(spike, dt, p.x + p.w / 2, p.y + p.h / 2);
 
-    if (!spike.isOut) continue;
+    if (spike.state !== 'active') continue;
     if (!rectsOverlap(p, spike)) continue;
 
     const cd = p.hitCooldowns.get(spike.id) ?? 0;
@@ -162,14 +182,14 @@ function updateSpikes(state: GameState, dt: number) {
 // ─── Pillars ──────────────────────────────────────────────────────────────
 
 function updatePillars(state: GameState, dt: number) {
+  const p = state.player;
   for (const pillar of state.pillars) {
-    const wasOut = pillar.isOut;
-    pillar.cycleTimer += dt;
-    const total = pillar.outDuration + pillar.inDuration;
-    if (pillar.cycleTimer >= total) pillar.cycleTimer -= total;
-    pillar.isOut = pillar.cycleTimer < pillar.outDuration;
-
-    if (pillar.isOut !== wasOut) playPillarSound();
+    const wasActive = pillar.state === 'active';
+    advanceCycle(pillar, dt, p.x + p.w / 2, p.y + p.h / 2);
+    const isActive = pillar.state === 'active';
+    if (isActive !== wasActive) {
+      playPillarSound();
+    }
   }
 }
 
@@ -178,6 +198,12 @@ function updatePillars(state: GameState, dt: number) {
 function updatePoison(state: GameState, dt: number) {
   const p = state.player;
   for (const pool of state.poisonPools) {
+    advanceCycle(pool, dt, p.x + p.w / 2, p.y + p.h / 2);
+    // Reset damage timer when pool moves or is inactive
+    if (pool.state !== 'active') {
+      pool.damageTimer = 0;
+      continue;
+    }
     if (rectsOverlap(p, pool)) {
       pool.damageTimer += dt;
       while (pool.damageTimer >= POISON_INTERVAL) {
@@ -189,7 +215,6 @@ function updatePoison(state: GameState, dt: number) {
         playHitSound();
       }
     } else {
-      // Reset timer when player leaves so ticks restart on re-entry
       pool.damageTimer = 0;
     }
   }
@@ -201,11 +226,9 @@ function updateBottles(state: GameState, dt: number) {
   const p = state.player;
   for (const bottle of state.healingBottles) {
     bottle.bobTimer += dt;
-    if (!bottle.active) {
-      bottle.respawnTimer -= dt;
-      if (bottle.respawnTimer <= 0) bottle.active = true;
-      continue;
-    }
+    advanceCycle(bottle, dt, p.x + p.w / 2, p.y + p.h / 2);
+
+    if (bottle.state !== 'active') continue;
     if (!rectsOverlap(p, bottle)) continue;
 
     const prev = p.hp;
@@ -216,8 +239,9 @@ function updateBottles(state: GameState, dt: number) {
       spawnFloat(state, p.x + p.w / 2, p.y - 4, `+${gained}`, '#39FF88');
       playHealSound();
     }
-    bottle.active = false;
-    bottle.respawnTimer = HEAL_RESPAWN;
+    // Immediately hide the bottle after pickup
+    bottle.state = 'hidden';
+    bottle.stateTimer = bottle.hiddenDuration;
   }
 }
 
@@ -238,13 +262,4 @@ function updateFloats(state: GameState, dt: number) {
   state.floatingTexts = state.floatingTexts
     .map(ft => ({ ...ft, life: ft.life - dt }))
     .filter(ft => ft.life > 0);
-}
-
-// ─── Restart ─────────────────────────────────────────────────────────────
-
-export function resetState(state: GameState): void {
-  const fresh = createInitialState();
-  // Copy all properties into the existing object so refs remain stable
-  Object.assign(state, fresh);
-  state.keys = new Set(); // always reset keys
 }

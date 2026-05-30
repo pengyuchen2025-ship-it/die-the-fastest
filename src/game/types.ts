@@ -1,11 +1,27 @@
 export type GamePhase = 'home' | 'playing' | 'win' | 'lose';
 
-// Axis-aligned rectangle — shared by all entities
+// warning = 出现前预警; active = 激活可交互; hidden = 消失等待
+export type EntityState = 'warning' | 'active' | 'hidden';
+
 export interface Rect {
   x: number;
   y: number;
   w: number;
   h: number;
+}
+
+// Base for all randomly-cycling map entities
+export interface CyclingEntity {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  state: EntityState;
+  stateTimer: number;     // counts down to 0, then transitions
+  warningDuration: number;
+  activeDuration: number;
+  hiddenDuration: number;
 }
 
 export interface Player {
@@ -15,58 +31,25 @@ export interface Player {
   h: number;
   hp: number;
   maxHp: number;
-  // >0 = red hit flash, <0 = green heal flash, 0 = normal
-  flashTimer: number;
-  // maps entity id -> remaining cooldown seconds
+  flashTimer: number;       // >0 red hit flash, <0 green heal flash
   hitCooldowns: Map<string, number>;
 }
 
-export interface Spike {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
+export interface Spike extends CyclingEntity {
   type: 'normal' | 'burst';
-  cycleTimer: number; // position within current out+in cycle
-  isOut: boolean;
   damage: number;
-  outDuration: number;
-  inDuration: number;
   hitCooldown: number;
 }
 
-export interface PoisonPool {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
+export interface PoisonPool extends CyclingEntity {
   damageTimer: number;
 }
 
-export interface HealingBottle {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  active: boolean;
-  respawnTimer: number;
-  bobTimer: number; // for visual bob animation
+export interface HealingBottle extends CyclingEntity {
+  bobTimer: number;
 }
 
-export interface Pillar {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  cycleTimer: number;
-  isOut: boolean;
-  outDuration: number;
-  inDuration: number;
-}
+export interface Pillar extends CyclingEntity {}
 
 export interface FloatingText {
   id: string;
@@ -74,7 +57,7 @@ export interface FloatingText {
   y: number;
   text: string;
   color: string;
-  life: number;    // remaining seconds
+  life: number;
   maxLife: number;
 }
 
@@ -86,9 +69,8 @@ export interface GameState {
   healingBottles: HealingBottle[];
   pillars: Pillar[];
   floatingTexts: FloatingText[];
-  timeElapsed: number;  // seconds since game start
+  timeElapsed: number;
   timeRemaining: number;
-  screenShake: number;  // 0..1 intensity, decays over time
-  // key set is mutated in-place (not copied) for performance
+  screenShake: number;
   keys: Set<string>;
 }
