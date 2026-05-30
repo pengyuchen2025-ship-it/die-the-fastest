@@ -53,9 +53,9 @@ export function HomePage({ onStart }: Props) {
             lineHeight: 2,
           }}
         >
-          Drop your HP to zero within 15 seconds.
+          在 15 秒内让 HP 归零。
           <br />
-          Survive too long, and you lose.
+          活得太久，就算失败。
         </p>
 
         {/* Divider */}
@@ -71,25 +71,25 @@ export function HomePage({ onStart }: Props) {
             lineHeight: 2.4,
           }}
         >
-          <p>This is <span style={{ color: '#FF4D4D' }}>not</span> a survival game.</p>
+          <p>这<span style={{ color: '#FF4D4D' }}>不是</span>一个生存游戏。</p>
           <p className="mt-2">
-            Your goal is to get hurt precisely and lose HP as fast as possible.
+            你的目标是精准地踩上危险物，尽快让 HP 归零。
           </p>
           <p className="mt-2">
-            Watch out for{' '}
-            <span style={{ color: '#37E6D0' }}>Healing Bottles</span> and{' '}
-            <span style={{ color: '#8A8F98' }}>Life-Saving Pillars</span>
-            {' '}— they will keep you alive.
+            小心{' '}
+            <span style={{ color: '#37E6D0' }}>回血瓶</span>{' '}和{' '}
+            <span style={{ color: '#8A8F98' }}>保命柱</span>
+            {' '}——它们会拼命让你活着。
           </p>
         </div>
 
         {/* Legend row */}
         <div className="flex flex-wrap justify-center gap-4 w-full">
-          <LegendItem color="#E5484D" label="Spike  -2" />
-          <LegendItem color="#FF7A1A" label="Burst  -3" />
-          <LegendItem color="#39FF88" label="Poison  -1/s" />
-          <LegendItem color="#37E6D0" label="Heal  +2 ⚠" />
-          <LegendItem color="#8A8F98" label="Pillar  BLOCKS" />
+          <LegendItem color="#E5484D" label="地刺 -2" />
+          <LegendItem color="#FF7A1A" label="爆裂刺 -3" />
+          <LegendItem color="#39FF88" label="毒池 -1/s" />
+          <LegendItem color="#37E6D0" label="回血瓶 +2 ⚠" />
+          <LegendItem color="#8A8F98" label="保命柱 阻挡" />
         </div>
 
         {/* Best time */}
@@ -133,7 +133,7 @@ export function HomePage({ onStart }: Props) {
               '0 0 20px #7C3AED, 0 4px 0 #4C1D95, inset 0 1px 0 rgba(255,255,255,0.15)';
           }}
         >
-          START GAME
+          开始游戏
         </button>
 
         {/* Footer hint */}
@@ -144,7 +144,7 @@ export function HomePage({ onStart }: Props) {
             color: '#4A4560',
           }}
         >
-          WASD / ARROW KEYS  ·  R TO RESTART
+          WASD / 方向键移动  ·  R 键重新开始
         </p>
       </div>
     </div>

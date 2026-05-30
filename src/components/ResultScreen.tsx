@@ -44,7 +44,7 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
             lineHeight: 1.6,
           }}
         >
-          YOU SUCCESSFULLY<br />FAILED!
+          你成功地<br />失败了！
         </h2>
 
         {/* Rank badge */}
@@ -62,16 +62,16 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
 
         {/* Stats */}
         <div className="flex flex-col gap-2 items-center">
-          <StatRow label="TIME TO ZERO" value={`${time.toFixed(2)}s`} color="#F5F3FF" />
+          <StatRow label="归零用时" value={`${time.toFixed(2)}s`} color="#F5F3FF" />
           {best !== null && (
             <StatRow
-              label="BEST TIME"
+              label="最佳成绩"
               value={`${best.toFixed(2)}s`}
               color="#FFD700"
-              extra={isNewBest ? '★ NEW RECORD' : undefined}
+              extra={isNewBest ? '★ 新纪录' : undefined}
             />
           )}
-          <StatRow label="RANK" value={rank} color={rankColor} />
+          <StatRow label="评级" value={rank} color={rankColor} />
         </div>
 
         {/* Rank guide */}
@@ -89,7 +89,7 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
           ))}
         </div>
 
-        <Buttons onPrimary={onRestart} primaryLabel="TRY AGAIN" onHome={onHome} />
+        <Buttons onPrimary={onRestart} primaryLabel="再来一次" onHome={onHome} />
 
         <Hint />
       </div>
@@ -121,7 +121,7 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
             lineHeight: 1.6,
           }}
         >
-          YOU SURVIVED.
+          你活下来了。
         </h2>
 
         <p
@@ -133,12 +133,12 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
             lineHeight: 2,
           }}
         >
-          You lasted over 15 seconds.
+          你撑过了 15 秒。
           <br />
-          Challenge failed.
+          挑战失败。
         </p>
 
-        <StatRow label="REMAINING HP" value={String(remainingHp)} color="#FF4D4D" />
+        <StatRow label="剩余 HP" value={String(remainingHp)} color="#FF4D4D" />
 
         <p
           style={{
@@ -149,10 +149,10 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
             lineHeight: 2,
           }}
         >
-          Tip: Go for the spikes first,<br />then the poison pool.
+          提示：先冲向地刺，<br />再进入毒池补最后伤害。
         </p>
 
-        <Buttons onPrimary={onRestart} primaryLabel="RESTART" onHome={onHome} />
+        <Buttons onPrimary={onRestart} primaryLabel="重新开始" onHome={onHome} />
 
         <Hint />
       </div>
@@ -258,7 +258,7 @@ function Buttons({
         {primaryLabel}
       </ArcadeBtn>
       <ArcadeBtn onClick={onHome}>
-        HOME
+        主页
       </ArcadeBtn>
     </div>
   );
@@ -310,7 +310,7 @@ function Hint() {
         marginTop: 4,
       }}
     >
-      R  to restart
+      R 键重新开始
     </p>
   );
 }

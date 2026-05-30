@@ -562,14 +562,14 @@ function drawHUD(
 
   ctx.font      = '7px "Press Start 2P", monospace';
   ctx.fillStyle = COLORS.HUD_WEAK;
-  ctx.fillText('SEC REMAINING', CANVAS_WIDTH / 2, hudY + 28);
+  ctx.fillText('秒剩余', CANVAS_WIDTH / 2, hudY + 28);
 
   // Best time — right
   ctx.textAlign = 'right';
   ctx.font      = '8px "Press Start 2P", monospace';
   ctx.fillStyle = COLORS.HUD_BEST;
   ctx.fillText(
-    bestTime !== null ? `BEST: ${bestTime.toFixed(2)}s` : 'BEST: --',
+    bestTime !== null ? `最佳: ${bestTime.toFixed(2)}s` : '最佳: --',
     CANVAS_WIDTH - 50, hudY + 14,
   );
 
@@ -578,7 +578,7 @@ function drawHUD(
   ctx.font      = '7px "Press Start 2P", monospace';
   ctx.fillStyle = COLORS.HUD_WEAK;
   ctx.fillText(
-    'WASD / ARROWS  ·  R to restart  ·  GOAL: drop HP to 0 in 15s',
+    'WASD / 方向键移动  ·  R 键重开  ·  目标：15秒内让HP归零',
     CANVAS_WIDTH / 2, CANVAS_HEIGHT - 12,
   );
 }
