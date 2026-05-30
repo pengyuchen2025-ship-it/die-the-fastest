@@ -41,6 +41,7 @@ export function renderGame(
   for (const ft of state.floatingTexts)      drawFloat(ctx, ft);
 
   ctx.restore();
+  drawUrgencyVignette(ctx, state.timeRemaining, animTime);
   drawHUD(ctx, state, bestTime);
 }
 
@@ -516,6 +517,39 @@ function drawFloat(ctx: CanvasRenderingContext2D, ft: FloatingText) {
   ctx.textAlign   = 'center';
   ctx.fillText(ft.text, ft.x, ft.y - rise);
   ctx.globalAlpha = 1;
+}
+
+// ─── Urgency vignette (time < 5s) ────────────────────────────────────────
+// Red radial gradient on screen edges, pulsing faster as time runs out.
+
+function drawUrgencyVignette(
+  ctx: CanvasRenderingContext2D,
+  timeRemaining: number,
+  animTime: number,
+) {
+  if (timeRemaining >= 5) return;
+
+  // 0 at 5 s remaining → 1 at 0 s remaining
+  const intensity = (5 - timeRemaining) / 5;
+
+  // Pulse frequency ramps from 2 Hz → 10 Hz
+  const freq  = 2 + intensity * 8;
+  const pulse = (Math.sin(animTime * freq * Math.PI * 2) + 1) / 2; // 0..1
+
+  // Alpha: modest at start, peaks near ~0.55 at 0 s
+  const alpha = intensity * (0.2 + pulse * 0.35);
+
+  const cx = CANVAS_WIDTH  / 2;
+  const cy = CANVAS_HEIGHT / 2;
+  const grad = ctx.createRadialGradient(
+    cx, cy, CANVAS_HEIGHT * 0.2,   // inner radius — clear center
+    cx, cy, CANVAS_WIDTH  * 0.78,  // outer radius — red edges
+  );
+  grad.addColorStop(0, 'rgba(200,0,0,0)');
+  grad.addColorStop(1, `rgba(220,0,0,${alpha.toFixed(3)})`);
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
 // ─── HUD ──────────────────────────────────────────────────────────────────
