@@ -29,7 +29,15 @@ export function renderGame(
   for (const pillar of state.pillars)        drawPillar(ctx, pillar, animTime);
   for (const bottle of state.healingBottles) drawBottle(ctx, bottle, animTime);
 
-  drawPlayer(ctx, state.player);
+  const isMoving =
+    state.keys.has('a') || state.keys.has('A') ||
+    state.keys.has('d') || state.keys.has('D') ||
+    state.keys.has('w') || state.keys.has('W') ||
+    state.keys.has('s') || state.keys.has('S') ||
+    state.keys.has('ArrowLeft') || state.keys.has('ArrowRight') ||
+    state.keys.has('ArrowUp')   || state.keys.has('ArrowDown');
+
+  drawPlayer(ctx, state.player, animTime, isMoving);
   for (const ft of state.floatingTexts)      drawFloat(ctx, ft);
 
   ctx.restore();
@@ -355,38 +363,144 @@ function drawBottle(ctx: CanvasRenderingContext2D, bottle: HealingBottle, animTi
   ctx.shadowBlur = 0;
 }
 
-// ─── Player ───────────────────────────────────────────────────────────────
+// ─── Player (pixel art humanoid) ─────────────────────────────────────────
+//
+// Bounding box: 20×20px (collision stays at this size)
+// Visual layout (px relative to player.x/y):
+//   Head  : (+6,  0, 8×7)   hair top 2px + face 5px
+//   Body  : (+5,  7, 10×6)  shirt
+//   L Arm : (+2,  7, 3×5)   shirt color
+//   R Arm : (+15, 7, 3×5)
+//   L Leg : (+5, 13, 4×5)   pants bottom 2px = shoe color
+//   R Leg : (+11,13, 4×5)
 
-function drawPlayer(ctx: CanvasRenderingContext2D, p: Player) {
-  const { x, y, w, h, flashTimer } = p;
+function drawPlayer(
+  ctx: CanvasRenderingContext2D,
+  p: Player,
+  animTime: number,
+  isMoving: boolean,
+) {
+  const { x, y, flashTimer } = p;
 
-  let bodyColor = COLORS.PLAYER;
-  if (flashTimer > 0) bodyColor = COLORS.PLAYER_HIT;
-  else if (flashTimer < 0) bodyColor = COLORS.PLAYER_HEAL;
+  const isHit  = flashTimer > 0;
+  const isHeal = flashTimer < 0;
 
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fillRect(x + 3, y + 3, w, h);
+  // Palette — tint everything on hit/heal
+  const skin    = isHit ? '#FF9090' : isHeal ? '#90FFB8' : '#FFD4B2';
+  const hair    = isHit ? '#CC2020' : isHeal ? '#20CC60' : '#2A4A7F';
+  const shirt   = isHit ? '#FF3030' : isHeal ? '#30FF70' : '#5DA9FF';
+  const pants   = isHit ? '#CC1515' : isHeal ? '#15CC50' : '#2B5EA7';
+  const shoe    = isHit ? '#880000' : isHeal ? '#007730' : '#1A2848';
+  const outline = isHit ? '#FF2020' : isHeal ? '#20FF60' : COLORS.PLAYER_OUTLINE;
+  const eye     = '#0A0A1E';
 
-  ctx.fillStyle = bodyColor;
-  ctx.fillRect(x, y, w, h);
+  // Walk cycle — legs alternate, arms swing opposite
+  const cycle   = isMoving ? Math.sin(animTime * 11) : Math.sin(animTime * 2) * 0.3;
+  const legOff  = Math.round(cycle * 2.5);   // ±2px
+  const armOff  = Math.round(-cycle * 2);    // opposite
+  // Whole body bobs up/down slightly
+  const bob     = isMoving
+    ? Math.round(Math.abs(Math.sin(animTime * 11)) * 1)
+    : 0;
 
-  ctx.strokeStyle = COLORS.PLAYER_OUTLINE;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(x, y, w, h);
+  const px = Math.round(x);
+  const py = Math.round(y) - bob;
 
-  if (flashTimer === 0) {
-    ctx.fillStyle = COLORS.PLAYER_DETAIL;
-    ctx.fillRect(x + 4, y + 5, 4, 3);
-    ctx.fillRect(x + w - 8, y + 5, 4, 3);
-    ctx.fillRect(x + 5, y + h - 7, w - 10, 2);
+  // Ground shadow (ellipse)
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath();
+  ctx.ellipse(px + 10, y + 21, 8, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Legs (drawn first so body overlaps the top) ──
+  // Left leg
+  ctx.fillStyle = pants;
+  ctx.fillRect(px + 5, py + 13 + legOff, 4, 3);
+  // Left shoe
+  ctx.fillStyle = shoe;
+  ctx.fillRect(px + 4, py + 16 + legOff, 5, 2);
+
+  // Right leg
+  ctx.fillStyle = pants;
+  ctx.fillRect(px + 11, py + 13 - legOff, 4, 3);
+  // Right shoe
+  ctx.fillStyle = shoe;
+  ctx.fillRect(px + 11, py + 16 - legOff, 5, 2);
+
+  // ── Arms (behind body visually — draw before body) ──
+  // Left arm
+  ctx.fillStyle = shirt;
+  ctx.fillRect(px + 2, py + 8 + armOff, 3, 5);
+  ctx.strokeStyle = outline;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 2, py + 8 + armOff, 3, 5);
+
+  // Right arm
+  ctx.fillStyle = shirt;
+  ctx.fillRect(px + 15, py + 8 - armOff, 3, 5);
+  ctx.strokeStyle = outline;
+  ctx.strokeRect(px + 15, py + 8 - armOff, 3, 5);
+
+  // ── Torso / shirt ──
+  ctx.fillStyle = shirt;
+  ctx.fillRect(px + 5, py + 7, 10, 7);
+  ctx.strokeStyle = outline;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 5, py + 7, 10, 7);
+
+  // Shirt collar detail
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(px + 8, py + 7, 4, 1);
+
+  // ── Head ──
+  // Hair (top 3px)
+  ctx.fillStyle = hair;
+  ctx.fillRect(px + 6, py, 8, 3);
+
+  // Face
+  ctx.fillStyle = skin;
+  ctx.fillRect(px + 6, py + 3, 8, 4);
+
+  // Head outline
+  ctx.strokeStyle = outline;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 6, py, 8, 7);
+
+  // Eyes — 2×2 each
+  ctx.fillStyle = eye;
+  ctx.fillRect(px + 8, py + 4, 2, 2);
+  ctx.fillRect(px + 11, py + 4, 2, 2);
+
+  // Eye whites (top pixel)
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(px + 8, py + 4, 2, 1);
+  ctx.fillRect(px + 11, py + 4, 2, 1);
+  ctx.fillStyle = eye;
+  ctx.fillRect(px + 8, py + 5, 2, 1);
+  ctx.fillRect(px + 11, py + 5, 2, 1);
+
+  // Mouth (happy expression when normal, grimace when flashing)
+  ctx.fillStyle = isHit ? '#FF0000' : isHeal ? '#00CC44' : '#C07050';
+  if (!isHit && !isHeal) {
+    // Smile: 4px wide, 1px
+    ctx.fillRect(px + 9, py + 6, 3, 1);
+    // Smile corners go down
+    ctx.fillRect(px + 8,  py + 5, 1, 1);
+    ctx.fillRect(px + 12, py + 5, 1, 1);
+  } else {
+    // Flat line
+    ctx.fillRect(px + 9, py + 6, 3, 1);
   }
 
+  // ── Flash glow outline ──
   if (flashTimer !== 0) {
-    ctx.shadowColor = bodyColor;
-    ctx.shadowBlur  = 12;
-    ctx.strokeStyle = bodyColor;
+    const glowColor = isHit ? COLORS.PLAYER_HIT : COLORS.PLAYER_HEAL;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur  = 16;
+    ctx.strokeStyle = glowColor;
     ctx.lineWidth   = 2;
-    ctx.strokeRect(x - 1, y - 1, w + 2, h + 2);
+    // Outline entire character bounds
+    ctx.strokeRect(px + 2, py - 1, 17, 22);
     ctx.shadowBlur  = 0;
   }
 }
