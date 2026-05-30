@@ -72,7 +72,8 @@ export function updateGame(state: GameState, dt: number): void {
   if (p.flashTimer > 0) p.flashTimer = Math.max(0, p.flashTimer - dt);
   else if (p.flashTimer < 0) p.flashTimer = Math.min(0, p.flashTimer + dt);
 
-  state.screenShake = Math.max(0, state.screenShake - dt * 6);
+  // Fast decay so shake feels like a sharp snap, not a wobble
+  state.screenShake = Math.max(0, state.screenShake - dt * 22);
 
   if (p.hp <= 0) {
     p.hp = 0;
@@ -173,7 +174,8 @@ function updateSpikes(state: GameState, dt: number) {
     p.hp = Math.max(0, p.hp - spike.damage);
     p.flashTimer = 0.28;
     p.hitCooldowns.set(spike.id, spike.hitCooldown);
-    state.screenShake = Math.min(1, state.screenShake + 0.3);
+    // Burst spike hits harder than normal spike
+    state.screenShake = spike.type === 'burst' ? 1.4 : 1.0;
     spawnFloat(state, p.x + p.w / 2, p.y - 4, `-${spike.damage}`, '#FF6060');
     playHitSound();
   }
@@ -210,7 +212,7 @@ function updatePoison(state: GameState, dt: number) {
         pool.damageTimer -= POISON_INTERVAL;
         p.hp = Math.max(0, p.hp - POISON_DAMAGE);
         p.flashTimer = 0.18;
-        state.screenShake = Math.min(1, state.screenShake + 0.15);
+        state.screenShake = Math.max(state.screenShake, 0.45);
         spawnFloat(state, p.x + p.w / 2, p.y - 4, `-${POISON_DAMAGE}`, '#39FF88');
         playHitSound();
       }

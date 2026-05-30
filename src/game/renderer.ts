@@ -14,8 +14,8 @@ export function renderGame(
   animTime: number,
 ) {
   const shake = state.screenShake;
-  const sx = shake > 0 ? (Math.random() - 0.5) * shake * 10 : 0;
-  const sy = shake > 0 ? (Math.random() - 0.5) * shake * 10 : 0;
+  const sx = shake > 0 ? (Math.random() - 0.5) * shake * 20 : 0;
+  const sy = shake > 0 ? (Math.random() - 0.5) * shake * 20 : 0;
 
   ctx.save();
   if (shake > 0) ctx.translate(sx, sy);
