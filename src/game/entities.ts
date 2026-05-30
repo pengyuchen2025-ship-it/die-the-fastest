@@ -53,16 +53,12 @@ export function createPlayer(): Player {
 // Stagger initial states so entities don't all appear at the same time.
 
 export function createSpikes(): Spike[] {
-  const p1 = randomPos(SPIKE_SIZE, SPIKE_SIZE);
-  const p2 = randomPos(SPIKE_SIZE, SPIKE_SIZE);
-  const p3 = randomPos(BURST_SIZE, BURST_SIZE);
-
   return [
     {
       id: 'spike_a',
-      ...p1, w: SPIKE_SIZE, h: SPIKE_SIZE,
+      ...randomPos(SPIKE_SIZE, SPIKE_SIZE), w: SPIKE_SIZE, h: SPIKE_SIZE,
       type: 'normal',
-      state: 'warning',          // already warning at game start
+      state: 'warning',
       stateTimer: SPIKE_WARNING,
       warningDuration: SPIKE_WARNING,
       activeDuration: SPIKE_ACTIVE,
@@ -72,9 +68,9 @@ export function createSpikes(): Spike[] {
     },
     {
       id: 'spike_b',
-      ...p2, w: SPIKE_SIZE, h: SPIKE_SIZE,
+      ...randomPos(SPIKE_SIZE, SPIKE_SIZE), w: SPIKE_SIZE, h: SPIKE_SIZE,
       type: 'normal',
-      state: 'hidden',           // appears after a short delay
+      state: 'hidden',
       stateTimer: 0.7,
       warningDuration: SPIKE_WARNING,
       activeDuration: SPIKE_ACTIVE,
@@ -83,11 +79,35 @@ export function createSpikes(): Spike[] {
       hitCooldown: SPIKE_COOLDOWN,
     },
     {
-      id: 'burst_spike',
-      ...p3, w: BURST_SIZE, h: BURST_SIZE,
+      id: 'spike_c',
+      ...randomPos(SPIKE_SIZE, SPIKE_SIZE), w: SPIKE_SIZE, h: SPIKE_SIZE,
+      type: 'normal',
+      state: 'hidden',
+      stateTimer: 1.5,           // staggered so it doesn't sync with spike_b
+      warningDuration: SPIKE_WARNING,
+      activeDuration: SPIKE_ACTIVE,
+      hiddenDuration: SPIKE_HIDDEN,
+      damage: SPIKE_DAMAGE,
+      hitCooldown: SPIKE_COOLDOWN,
+    },
+    {
+      id: 'burst_a',
+      ...randomPos(BURST_SIZE, BURST_SIZE), w: BURST_SIZE, h: BURST_SIZE,
       type: 'burst',
       state: 'hidden',
-      stateTimer: 1.4,           // appears a bit later
+      stateTimer: 1.4,
+      warningDuration: BURST_WARNING,
+      activeDuration: BURST_ACTIVE,
+      hiddenDuration: BURST_HIDDEN,
+      damage: BURST_DAMAGE,
+      hitCooldown: BURST_COOLDOWN,
+    },
+    {
+      id: 'burst_b',
+      ...randomPos(BURST_SIZE, BURST_SIZE), w: BURST_SIZE, h: BURST_SIZE,
+      type: 'burst',
+      state: 'hidden',
+      stateTimer: 2.2,           // offset from burst_a
       warningDuration: BURST_WARNING,
       activeDuration: BURST_ACTIVE,
       hiddenDuration: BURST_HIDDEN,
@@ -100,13 +120,22 @@ export function createSpikes(): Spike[] {
 // ─── Poison pool ──────────────────────────────────────────────────────────
 
 export function createPoisonPools(): PoisonPool[] {
-  const p = randomPos(POISON_W, POISON_H);
   return [
     {
       id: 'poison_a',
-      ...p, w: POISON_W, h: POISON_H,
+      ...randomPos(POISON_W, POISON_H), w: POISON_W, h: POISON_H,
       state: 'hidden',
       stateTimer: 1.0,
+      warningDuration: POISON_WARNING,
+      activeDuration: POISON_ACTIVE,
+      hiddenDuration: POISON_HIDDEN,
+      damageTimer: 0,
+    },
+    {
+      id: 'poison_b',
+      ...randomPos(POISON_W, POISON_H), w: POISON_W, h: POISON_H,
+      state: 'hidden',
+      stateTimer: 2.5,           // offset so both pools aren't active at the same time
       warningDuration: POISON_WARNING,
       activeDuration: POISON_ACTIVE,
       hiddenDuration: POISON_HIDDEN,
@@ -118,13 +147,22 @@ export function createPoisonPools(): PoisonPool[] {
 // ─── Healing bottles ──────────────────────────────────────────────────────
 
 export function createHealingBottles(): HealingBottle[] {
-  const p = randomPos(HEAL_W, HEAL_H);
   return [
     {
       id: 'heal_a',
-      ...p, w: HEAL_W, h: HEAL_H,
+      ...randomPos(HEAL_W, HEAL_H), w: HEAL_W, h: HEAL_H,
       state: 'hidden',
       stateTimer: 1.8,
+      warningDuration: HEAL_WARNING,
+      activeDuration: HEAL_ACTIVE,
+      hiddenDuration: HEAL_HIDDEN,
+      bobTimer: 0,
+    },
+    {
+      id: 'heal_b',
+      ...randomPos(HEAL_W, HEAL_H), w: HEAL_W, h: HEAL_H,
+      state: 'hidden',
+      stateTimer: 3.2,           // offset from heal_a
       warningDuration: HEAL_WARNING,
       activeDuration: HEAL_ACTIVE,
       hiddenDuration: HEAL_HIDDEN,
@@ -136,13 +174,10 @@ export function createHealingBottles(): HealingBottle[] {
 // ─── Pillars ──────────────────────────────────────────────────────────────
 
 export function createPillars(): Pillar[] {
-  const p1 = randomPos(PILLAR_SIZE, PILLAR_SIZE);
-  const p2 = randomPos(PILLAR_SIZE, PILLAR_SIZE);
-
   return [
     {
       id: 'pillar_a',
-      ...p1, w: PILLAR_SIZE, h: PILLAR_SIZE,
+      ...randomPos(PILLAR_SIZE, PILLAR_SIZE), w: PILLAR_SIZE, h: PILLAR_SIZE,
       state: 'warning',
       stateTimer: PILLAR_WARNING,
       warningDuration: PILLAR_WARNING,
@@ -151,9 +186,18 @@ export function createPillars(): Pillar[] {
     },
     {
       id: 'pillar_b',
-      ...p2, w: PILLAR_SIZE, h: PILLAR_SIZE,
+      ...randomPos(PILLAR_SIZE, PILLAR_SIZE), w: PILLAR_SIZE, h: PILLAR_SIZE,
       state: 'hidden',
       stateTimer: 1.2,
+      warningDuration: PILLAR_WARNING,
+      activeDuration: PILLAR_ACTIVE,
+      hiddenDuration: PILLAR_HIDDEN,
+    },
+    {
+      id: 'pillar_c',
+      ...randomPos(PILLAR_SIZE, PILLAR_SIZE), w: PILLAR_SIZE, h: PILLAR_SIZE,
+      state: 'hidden',
+      stateTimer: 2.0,           // offset so all three pillars cycle differently
       warningDuration: PILLAR_WARNING,
       activeDuration: PILLAR_ACTIVE,
       hiddenDuration: PILLAR_HIDDEN,
