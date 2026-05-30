@@ -21,7 +21,6 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
   const best = getBestTime();
   const isNewBest = best !== null && Math.abs(best - time) < 0.002;
 
-  // R key shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') onRestart();
@@ -33,15 +32,14 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
   return (
     <Overlay flash="green">
       <div className="flex flex-col items-center gap-5">
-        {/* Title */}
         <h2
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: 'clamp(14px, 2.5vw, 22px)',
+            fontSize: 'clamp(16px, 2.8vw, 24px)',
             color: '#39FF88',
             textShadow: '0 0 20px #39FF88, 0 0 40px #39FF88',
             textAlign: 'center',
-            lineHeight: 1.6,
+            lineHeight: 1.8,
           }}
         >
           你成功地<br />失败了！
@@ -51,7 +49,7 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
         <div
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '56px',
+            fontSize: '60px',
             color: rankColor,
             textShadow: `0 0 30px ${rankColor}, 0 0 60px ${rankColor}`,
             lineHeight: 1,
@@ -61,7 +59,7 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
         </div>
 
         {/* Stats */}
-        <div className="flex flex-col gap-2 items-center">
+        <div className="flex flex-col gap-3 items-center">
           <StatRow label="归零用时" value={`${time.toFixed(2)}s`} color="#F5F3FF" />
           {best !== null && (
             <StatRow
@@ -79,7 +77,7 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
           className="flex gap-4 mt-1"
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '7px',
+            fontSize: '10px',
           }}
         >
           {(['S','A','B','C'] as const).map(r => (
@@ -90,7 +88,6 @@ export function WinScreen({ time, onRestart, onHome }: WinProps) {
         </div>
 
         <Buttons onPrimary={onRestart} primaryLabel="再来一次" onHome={onHome} />
-
         <Hint />
       </div>
     </Overlay>
@@ -114,7 +111,7 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
         <h2
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: 'clamp(16px, 3vw, 26px)',
+            fontSize: 'clamp(18px, 3.2vw, 28px)',
             color: '#FF4D4D',
             textShadow: '0 0 20px #FF4D4D, 0 0 40px #FF4D4D',
             textAlign: 'center',
@@ -127,10 +124,10 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
         <p
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '9px',
+            fontSize: '11px',
             color: '#A8A3C7',
             textAlign: 'center',
-            lineHeight: 2,
+            lineHeight: 2.2,
           }}
         >
           你撑过了 15 秒。
@@ -143,17 +140,16 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
         <p
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
+            fontSize: '10px',
             color: '#5DA9FF',
             textAlign: 'center',
-            lineHeight: 2,
+            lineHeight: 2.2,
           }}
         >
           提示：先冲向地刺，<br />再进入毒池补最后伤害。
         </p>
 
         <Buttons onPrimary={onRestart} primaryLabel="重新开始" onHome={onHome} />
-
         <Hint />
       </div>
     </Overlay>
@@ -177,7 +173,6 @@ function Overlay({
         backdropFilter: 'blur(4px)',
       }}
     >
-      {/* Flash rim */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -189,7 +184,7 @@ function Overlay({
       />
       <div
         className="relative z-10 rounded border border-[#2B2740] bg-[#1A1728] px-10 py-8 flex flex-col items-center"
-        style={{ minWidth: 320, maxWidth: 480 }}
+        style={{ minWidth: 340, maxWidth: 520 }}
       >
         {children}
       </div>
@@ -213,7 +208,7 @@ function StatRow({
       <span
         style={{
           fontFamily: '"Press Start 2P", monospace',
-          fontSize: '8px',
+          fontSize: '11px',
           color: '#A8A3C7',
         }}
       >
@@ -222,7 +217,7 @@ function StatRow({
       <span
         style={{
           fontFamily: '"Press Start 2P", monospace',
-          fontSize: '11px',
+          fontSize: '13px',
           color,
         }}
       >
@@ -232,7 +227,7 @@ function StatRow({
         <span
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '7px',
+            fontSize: '10px',
             color: '#FFD700',
           }}
         >
@@ -277,16 +272,13 @@ function ArcadeBtn({
     ? { bg: '#7C3AED', hover: '#9F67FF', border: '#5DA9FF', shadow: '#7C3AED' }
     : { bg: '#2B2740', hover: '#3A3460', border: '#4A4560', shadow: '#000' };
 
-  const ref = useRef<HTMLButtonElement>(null);
-
   return (
     <button
-      ref={ref}
       onClick={onClick}
-      className="px-5 py-3 rounded transition-all duration-75 active:scale-95"
+      className="px-6 py-3 rounded transition-all duration-75 active:scale-95"
       style={{
         fontFamily: '"Press Start 2P", monospace',
-        fontSize: '9px',
+        fontSize: '12px',
         background: `linear-gradient(180deg, ${base.hover} 0%, ${base.bg} 100%)`,
         color: '#F5F3FF',
         border: `2px solid ${base.border}`,
@@ -305,7 +297,7 @@ function Hint() {
     <p
       style={{
         fontFamily: '"Press Start 2P", monospace',
-        fontSize: '7px',
+        fontSize: '10px',
         color: '#3A3560',
         marginTop: 4,
       }}

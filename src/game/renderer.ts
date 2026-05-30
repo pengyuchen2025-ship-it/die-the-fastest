@@ -563,13 +563,13 @@ function drawHUD(
   const hudY = 8;
 
   // HP label
-  ctx.font      = '11px "Press Start 2P", monospace';
+  ctx.font      = '13px "Press Start 2P", monospace';
   ctx.textAlign = 'left';
   ctx.fillStyle = COLORS.HUD_WEAK;
-  ctx.fillText('HP', 50, hudY + 14);
+  ctx.fillText('HP', 48, hudY + 16);
 
   // HP bar
-  const barX = 82, barY = hudY + 4, barW = 160, barH = 16;
+  const barX = 82, barY = hudY + 4, barW = 170, barH = 18;
   ctx.fillStyle = COLORS.HUD_HP_BG;
   ctx.fillRect(barX, barY, barW, barH);
 
@@ -583,36 +583,36 @@ function drawHUD(
   ctx.strokeRect(barX, barY, barW, barH);
 
   ctx.fillStyle  = COLORS.HUD_TEXT;
-  ctx.font       = '10px "Press Start 2P", monospace';
+  ctx.font       = '12px "Press Start 2P", monospace';
   ctx.textAlign  = 'left';
-  ctx.fillText(`${player.hp}/${player.maxHp}`, barX + barW + 8, hudY + 14);
+  ctx.fillText(`${player.hp}/${player.maxHp}`, barX + barW + 8, hudY + 16);
 
   // Timer — center
   const timeColor = timeRemaining < 5 ? '#FF4D4D' : timeRemaining < 10 ? '#FF8C00' : COLORS.HUD_TIME;
-  ctx.font        = '14px "Press Start 2P", monospace';
+  ctx.font        = '17px "Press Start 2P", monospace';
   ctx.textAlign   = 'center';
   ctx.fillStyle   = timeColor;
-  ctx.fillText(timeRemaining.toFixed(2), CANVAS_WIDTH / 2, hudY + 16);
+  ctx.fillText(timeRemaining.toFixed(2), CANVAS_WIDTH / 2, hudY + 18);
 
-  ctx.font      = '7px "Press Start 2P", monospace';
+  ctx.font      = '9px "Press Start 2P", monospace';
   ctx.fillStyle = COLORS.HUD_WEAK;
-  ctx.fillText('秒剩余', CANVAS_WIDTH / 2, hudY + 28);
+  ctx.fillText('秒剩余', CANVAS_WIDTH / 2, hudY + 31);
 
   // Best time — right
   ctx.textAlign = 'right';
-  ctx.font      = '8px "Press Start 2P", monospace';
+  ctx.font      = '10px "Press Start 2P", monospace';
   ctx.fillStyle = COLORS.HUD_BEST;
   ctx.fillText(
     bestTime !== null ? `最佳: ${bestTime.toFixed(2)}s` : '最佳: --',
-    CANVAS_WIDTH - 50, hudY + 14,
+    CANVAS_WIDTH - 46, hudY + 16,
   );
 
   // Controls hint — bottom
   ctx.textAlign = 'center';
-  ctx.font      = '7px "Press Start 2P", monospace';
+  ctx.font      = '9px "Press Start 2P", monospace';
   ctx.fillStyle = COLORS.HUD_WEAK;
   ctx.fillText(
-    'WASD / 方向键移动  ·  R 键重开  ·  目标：15秒内让HP归零',
+    'WASD / 方向键  ·  R 重开  ·  目标：15秒内HP归零',
     CANVAS_WIDTH / 2, CANVAS_HEIGHT - 12,
   );
 }

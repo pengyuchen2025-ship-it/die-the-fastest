@@ -33,7 +33,7 @@ export function HomePage({ onStart }: Props) {
           className="text-center leading-tight"
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: 'clamp(24px, 5vw, 40px)',
+            fontSize: 'clamp(26px, 5vw, 42px)',
             color: '#F5F3FF',
             textShadow: '0 0 20px #7C3AED, 0 0 40px #5DA9FF, 3px 3px 0 #2B2740',
             letterSpacing: '0.05em',
@@ -47,10 +47,10 @@ export function HomePage({ onStart }: Props) {
           className="text-center mt-2"
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: 'clamp(8px, 1.5vw, 11px)',
+            fontSize: 'clamp(11px, 1.8vw, 14px)',
             color: '#E5484D',
             textShadow: '0 0 10px #E5484D',
-            lineHeight: 2,
+            lineHeight: 2.2,
           }}
         >
           在 15 秒内让 HP 归零。
@@ -66,9 +66,9 @@ export function HomePage({ onStart }: Props) {
           className="rounded border border-[#2B2740] bg-[#1A1728] px-6 py-4 w-full"
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: 'clamp(7px, 1.2vw, 9px)',
+            fontSize: 'clamp(10px, 1.5vw, 12px)',
             color: '#A8A3C7',
-            lineHeight: 2.4,
+            lineHeight: 2.6,
           }}
         >
           <p>这<span style={{ color: '#FF4D4D' }}>不是</span>一个生存游戏。</p>
@@ -84,7 +84,7 @@ export function HomePage({ onStart }: Props) {
         </div>
 
         {/* Legend row */}
-        <div className="flex flex-wrap justify-center gap-4 w-full">
+        <div className="flex flex-wrap justify-center gap-5 w-full">
           <LegendItem color="#E5484D" label="地刺 -2" />
           <LegendItem color="#FF7A1A" label="爆裂刺 -3" />
           <LegendItem color="#39FF88" label="毒池 -1/s" />
@@ -97,12 +97,12 @@ export function HomePage({ onStart }: Props) {
           <p
             style={{
               fontFamily: '"Press Start 2P", monospace',
-              fontSize: '9px',
+              fontSize: '12px',
               color: '#FFD700',
               textShadow: '0 0 8px #FFD700',
             }}
           >
-            ⭐ BEST: {best.toFixed(2)}s
+            ⭐ 最佳: {best.toFixed(2)}s
           </p>
         )}
 
@@ -112,7 +112,7 @@ export function HomePage({ onStart }: Props) {
           className="mt-2 px-10 py-4 rounded transition-all duration-100 active:scale-95"
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '14px',
+            fontSize: '16px',
             background: 'linear-gradient(180deg, #9F67FF 0%, #7C3AED 100%)',
             color: '#F5F3FF',
             border: '2px solid #5DA9FF',
@@ -140,7 +140,7 @@ export function HomePage({ onStart }: Props) {
         <p
           style={{
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '7px',
+            fontSize: '10px',
             color: '#4A4560',
           }}
         >
@@ -153,7 +153,7 @@ export function HomePage({ onStart }: Props) {
 
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2">
       <div
         className="w-3 h-3 rounded-sm flex-shrink-0"
         style={{ backgroundColor: color, boxShadow: `0 0 5px ${color}` }}
@@ -161,7 +161,7 @@ function LegendItem({ color, label }: { color: string; label: string }) {
       <span
         style={{
           fontFamily: '"Press Start 2P", monospace',
-          fontSize: '7px',
+          fontSize: '10px',
           color: '#A8A3C7',
         }}
       >
