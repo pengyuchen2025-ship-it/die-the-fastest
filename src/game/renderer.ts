@@ -242,8 +242,9 @@ function drawPoisonPool(ctx: CanvasRenderingContext2D, pool: PoisonPool, animTim
     return;
   }
 
-  const scale = appearScale(pool.stateTimer, pool.activeDuration);
-  ctx.globalAlpha = Math.min(1, scale * 2);
+  const scale     = appearScale(pool.stateTimer, pool.activeDuration);
+  const baseAlpha = Math.min(1, scale * 2);
+  ctx.globalAlpha = baseAlpha;
 
   // Base
   ctx.fillStyle = COLORS.POISON_BG;
@@ -259,17 +260,20 @@ function drawPoisonPool(ctx: CanvasRenderingContext2D, pool: PoisonPool, animTim
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
 
-  // Bubbles
+  // Rising "+" symbols
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle    = '#39FF88';
   for (let i = 0; i < 5; i++) {
     const bx    = x + 14 + (i * (w - 28)) / 4;
     const phase = (animTime * 1.4 + i * 1.3) % 1;
     const by    = y + h - 8 - phase * (h - 18);
-    const r     = 3 + Math.sin(animTime * 3 + i) * 1;
-    ctx.beginPath();
-    ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(57,255,136,${0.6 - phase * 0.45})`;
-    ctx.fill();
+    const size  = Math.round(8 + Math.sin(animTime * 3 + i) * 2);
+    ctx.globalAlpha = baseAlpha * (0.6 - phase * 0.45);
+    ctx.font = `bold ${size}px monospace`;
+    ctx.fillText('+', bx, by);
   }
+  ctx.textBaseline = 'alphabetic';
 
   ctx.globalAlpha = 1;
 }
