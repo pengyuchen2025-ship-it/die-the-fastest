@@ -267,7 +267,7 @@ function drawPoisonPool(ctx: CanvasRenderingContext2D, pool: PoisonPool, animTim
     const r     = 3 + Math.sin(animTime * 3 + i) * 1;
     ctx.beginPath();
     ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(255,128,170,${0.6 - phase * 0.45})`;
+    ctx.fillStyle = `rgba(57,255,136,${0.6 - phase * 0.45})`;
     ctx.fill();
   }
 

@@ -213,7 +213,7 @@ function updatePoison(state: GameState, dt: number) {
         if (p.hp < p.maxHp) {
           p.hp = Math.min(p.maxHp, p.hp + POISON_DAMAGE);
           p.flashTimer = -0.18;
-          spawnFloat(state, p.x + p.w / 2, p.y - 4, `+${POISON_DAMAGE}`, '#FF80AA');
+          spawnFloat(state, p.x + p.w / 2, p.y - 4, `+${POISON_DAMAGE}`, '#39FF88');
           playHealSound();
         }
       }
