@@ -210,11 +210,12 @@ function updatePoison(state: GameState, dt: number) {
       pool.damageTimer += dt;
       while (pool.damageTimer >= POISON_INTERVAL) {
         pool.damageTimer -= POISON_INTERVAL;
-        p.hp = Math.max(0, p.hp - POISON_DAMAGE);
-        p.flashTimer = 0.18;
-        state.screenShake = Math.max(state.screenShake, 0.45);
-        spawnFloat(state, p.x + p.w / 2, p.y - 4, `-${POISON_DAMAGE}`, '#39FF88');
-        playHitSound();
+        if (p.hp < p.maxHp) {
+          p.hp = Math.min(p.maxHp, p.hp + POISON_DAMAGE);
+          p.flashTimer = -0.18;
+          spawnFloat(state, p.x + p.w / 2, p.y - 4, `+${POISON_DAMAGE}`, '#FF80AA');
+          playHealSound();
+        }
       }
     } else {
       pool.damageTimer = 0;

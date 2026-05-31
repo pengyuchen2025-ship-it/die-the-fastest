@@ -120,6 +120,7 @@ export function HomePage({ onStart }: Props) {
           <p className="mt-1">你的目标是精准踩上危险物，尽快让 HP 归零。</p>
           <p className="mt-1">
             小心{' '}
+            <span style={{ color: '#FF80AA' }}>加血池</span>{' '}、{' '}
             <span style={{ color: '#37E6D0' }}>回血瓶</span>{' '}和{' '}
             <span style={{ color: '#8A8F98' }}>保命柱</span>
             {' '}——它们会拼命让你活着。
@@ -130,7 +131,7 @@ export function HomePage({ onStart }: Props) {
         <div className="flex flex-wrap justify-center gap-5 w-full">
           <LegendItem color="#E5484D" label="地刺 -2" />
           <LegendItem color="#FF7A1A" label="爆裂刺 -3" />
-          <LegendItem color="#39FF88" label="毒池 -1/s" />
+          <LegendItem color="#FF80AA" label="加血池 +1/s ⚠" />
           <LegendItem color="#37E6D0" label="回血瓶 +2 ⚠" />
           <LegendItem color="#8A8F98" label="保命柱 阻挡" />
         </div>

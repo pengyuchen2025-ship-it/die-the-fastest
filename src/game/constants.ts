@@ -25,9 +25,9 @@ export const BURST_ACTIVE   = 1.0;
 export const BURST_HIDDEN   = 1.3;
 export const BURST_COOLDOWN = 0.8;
 
-// Poison pool (longer active so player can actually use it)
+// Heal pool (heals player — bad for the player's goal)
 export const POISON_DAMAGE   = 1;
-export const POISON_INTERVAL = 0.5;
+export const POISON_INTERVAL = 1.0;
 export const POISON_W        = 120;
 export const POISON_H        = 80;
 export const POISON_WARNING  = 0.9;
@@ -64,9 +64,9 @@ export const COLORS = {
   BURST_DARK: '#7A3A08',
   BURST_GLOW: '#FFAA60',
 
-  POISON: '#39FF88',
-  POISON_DARK: '#1A7F4E',
-  POISON_BG: '#0D3320',
+  POISON: '#FF80AA',
+  POISON_DARK: '#8A2050',
+  POISON_BG: '#3A0D20',
 
   PILLAR: '#8A8F98',
   PILLAR_LIGHT: '#AAAFBB',

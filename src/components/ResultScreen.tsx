@@ -146,7 +146,7 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
             lineHeight: 2.2,
           }}
         >
-          提示：先冲向地刺，<br />再进入毒池补最后伤害。
+          提示：冲向地刺，注意躲开<br />加血池和回血瓶！
         </p>
 
         <Buttons onPrimary={onRestart} primaryLabel="重新开始" onHome={onHome} />
