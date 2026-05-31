@@ -92,6 +92,46 @@ export function HomePage({ onStart }: Props) {
           <LegendItem color="#8A8F98" label="保命柱 阻挡" />
         </div>
 
+        {/* Controls */}
+        <div className="flex flex-col items-center gap-3 w-full">
+          <p style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '10px', color: '#4A4560' }}>
+            操作方式
+          </p>
+          <div className="flex items-center gap-6">
+            {/* WASD */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="flex justify-center">
+                <Key label="W" />
+              </div>
+              <div className="flex gap-1.5">
+                <Key label="A" />
+                <Key label="S" />
+                <Key label="D" />
+              </div>
+            </div>
+
+            <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '10px', color: '#4A4560' }}>
+              或
+            </span>
+
+            {/* Arrow keys */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="flex justify-center">
+                <Key label="↑" />
+              </div>
+              <div className="flex gap-1.5">
+                <Key label="←" />
+                <Key label="↓" />
+                <Key label="→" />
+              </div>
+            </div>
+
+            <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '11px', color: '#A8A3C7' }}>
+              移动角色
+            </span>
+          </div>
+        </div>
+
         {/* Best time */}
         {best !== null && (
           <p
@@ -147,6 +187,31 @@ export function HomePage({ onStart }: Props) {
           WASD / 方向键移动  ·  R 键重新开始
         </p>
       </div>
+    </div>
+  );
+}
+
+function Key({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        fontFamily: '"Press Start 2P", monospace',
+        fontSize: '12px',
+        color: '#F5F3FF',
+        background: 'linear-gradient(180deg, #3A3460 0%, #252240 100%)',
+        border: '2px solid #5A5580',
+        borderBottom: '4px solid #14112A',
+        borderRadius: '5px',
+        width: '36px',
+        height: '36px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 0 8px rgba(93,169,255,0.15)',
+        userSelect: 'none',
+      }}
+    >
+      {label}
     </div>
   );
 }
