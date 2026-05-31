@@ -131,6 +131,7 @@ export function HomePage({ onStart }: Props) {
         <div className="flex flex-wrap justify-center gap-5 w-full">
           <LegendItem color="#E5484D" label="地刺 -2" />
           <LegendItem color="#FF7A1A" label="爆裂刺 -3" />
+          <LegendItem color="#FF6B1A" label="岩浆池 -1/s" />
           <LegendItem color="#39FF88" label="加血池 +1/s ⚠" />
           <LegendItem color="#37E6D0" label="回血瓶 +2 ⚠" />
           <LegendItem color="#8A8F98" label="保命柱 阻挡" />

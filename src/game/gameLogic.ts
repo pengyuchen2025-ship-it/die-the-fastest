@@ -4,11 +4,12 @@ import {
   CANVAS_WIDTH, CANVAS_HEIGHT, WALL_THICKNESS,
   PLAYER_SPEED, PLAYER_MAX_HP,
   POISON_DAMAGE, POISON_INTERVAL,
+  LAVA_DAMAGE, LAVA_INTERVAL,
   HEAL_AMOUNT,
   GAME_DURATION,
 } from './constants';
 import {
-  createPlayer, createSpikes, createPoisonPools,
+  createPlayer, createSpikes, createPoisonPools, createLavaPools,
   createHealingBottles, createPillars, randomPos,
 } from './entities';
 
@@ -37,6 +38,7 @@ export function createInitialState(): GameState {
     player: createPlayer(),
     spikes: createSpikes(),
     poisonPools: createPoisonPools(),
+    lavaPools: createLavaPools(),
     healingBottles: createHealingBottles(),
     pillars: createPillars(),
     floatingTexts: [],
@@ -64,6 +66,7 @@ export function updateGame(state: GameState, dt: number): void {
   updateSpikes(state, dt);
   updatePillars(state, dt);
   updatePoison(state, dt);
+  updateLava(state, dt);
   updateBottles(state, dt);
   updateCooldowns(state, dt);
   updateFloats(state, dt);
@@ -216,6 +219,32 @@ function updatePoison(state: GameState, dt: number) {
           spawnFloat(state, p.x + p.w / 2, p.y - 4, `+${POISON_DAMAGE}`, '#39FF88');
           playHealSound();
         }
+      }
+    } else {
+      pool.damageTimer = 0;
+    }
+  }
+}
+
+// ─── Lava pool ────────────────────────────────────────────────────────────
+
+function updateLava(state: GameState, dt: number) {
+  const p = state.player;
+  for (const pool of state.lavaPools) {
+    advanceCycle(pool, dt, p.x + p.w / 2, p.y + p.h / 2);
+    if (pool.state !== 'active') {
+      pool.damageTimer = 0;
+      continue;
+    }
+    if (rectsOverlap(p, pool)) {
+      pool.damageTimer += dt;
+      while (pool.damageTimer >= LAVA_INTERVAL) {
+        pool.damageTimer -= LAVA_INTERVAL;
+        p.hp = Math.max(0, p.hp - LAVA_DAMAGE);
+        p.flashTimer = 0.18;
+        state.screenShake = Math.max(state.screenShake, 0.45);
+        spawnFloat(state, p.x + p.w / 2, p.y - 4, `-${LAVA_DAMAGE}`, '#FF6B1A');
+        playHitSound();
       }
     } else {
       pool.damageTimer = 0;

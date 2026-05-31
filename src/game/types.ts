@@ -45,6 +45,10 @@ export interface PoisonPool extends CyclingEntity {
   damageTimer: number;
 }
 
+export interface LavaPool extends CyclingEntity {
+  damageTimer: number;
+}
+
 export interface HealingBottle extends CyclingEntity {
   bobTimer: number;
 }
@@ -66,6 +70,7 @@ export interface GameState {
   player: Player;
   spikes: Spike[];
   poisonPools: PoisonPool[];
+  lavaPools: LavaPool[];
   healingBottles: HealingBottle[];
   pillars: Pillar[];
   floatingTexts: FloatingText[];

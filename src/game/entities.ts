@@ -1,10 +1,11 @@
-import { Player, Spike, PoisonPool, HealingBottle, Pillar } from './types';
+import { Player, Spike, PoisonPool, LavaPool, HealingBottle, Pillar } from './types';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, WALL_THICKNESS,
   PLAYER_SIZE, PLAYER_MAX_HP,
   SPIKE_SIZE, SPIKE_DAMAGE, SPIKE_WARNING, SPIKE_ACTIVE, SPIKE_HIDDEN, SPIKE_COOLDOWN,
   BURST_SIZE, BURST_DAMAGE, BURST_WARNING, BURST_ACTIVE, BURST_HIDDEN, BURST_COOLDOWN,
   POISON_W, POISON_H, POISON_WARNING, POISON_ACTIVE, POISON_HIDDEN,
+  LAVA_W, LAVA_H, LAVA_WARNING, LAVA_ACTIVE, LAVA_HIDDEN,
   HEAL_W, HEAL_H, HEAL_WARNING, HEAL_ACTIVE, HEAL_HIDDEN,
   PILLAR_SIZE, PILLAR_WARNING, PILLAR_ACTIVE, PILLAR_HIDDEN,
 } from './constants';
@@ -139,6 +140,33 @@ export function createPoisonPools(): PoisonPool[] {
       warningDuration: POISON_WARNING,
       activeDuration: POISON_ACTIVE,
       hiddenDuration: POISON_HIDDEN,
+      damageTimer: 0,
+    },
+  ];
+}
+
+// ─── Lava pools ───────────────────────────────────────────────────────────
+
+export function createLavaPools(): LavaPool[] {
+  return [
+    {
+      id: 'lava_a',
+      ...randomPos(LAVA_W, LAVA_H), w: LAVA_W, h: LAVA_H,
+      state: 'hidden',
+      stateTimer: 1.6,
+      warningDuration: LAVA_WARNING,
+      activeDuration: LAVA_ACTIVE,
+      hiddenDuration: LAVA_HIDDEN,
+      damageTimer: 0,
+    },
+    {
+      id: 'lava_b',
+      ...randomPos(LAVA_W, LAVA_H), w: LAVA_W, h: LAVA_H,
+      state: 'hidden',
+      stateTimer: 3.0,
+      warningDuration: LAVA_WARNING,
+      activeDuration: LAVA_ACTIVE,
+      hiddenDuration: LAVA_HIDDEN,
       damageTimer: 0,
     },
   ];

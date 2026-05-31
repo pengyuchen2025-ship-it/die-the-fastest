@@ -34,6 +34,15 @@ export const POISON_WARNING  = 0.9;
 export const POISON_ACTIVE   = 2.5;
 export const POISON_HIDDEN   = 0.8;
 
+// Lava pool (damages player -1/s)
+export const LAVA_DAMAGE   = 1;
+export const LAVA_INTERVAL = 1.0;
+export const LAVA_W        = 120;
+export const LAVA_H        = 80;
+export const LAVA_WARNING  = 0.9;
+export const LAVA_ACTIVE   = 2.5;
+export const LAVA_HIDDEN   = 0.8;
+
 // Healing bottle (enemy - heals player, bad)
 export const HEAL_AMOUNT  = 2;
 export const HEAL_W       = 24;
@@ -67,6 +76,10 @@ export const COLORS = {
   POISON: '#39FF88',
   POISON_DARK: '#1A7F4E',
   POISON_BG: '#0D3320',
+
+  LAVA: '#FF6B1A',
+  LAVA_DARK: '#7A2A00',
+  LAVA_BG: '#3A1000',
 
   PILLAR: '#8A8F98',
   PILLAR_LIGHT: '#AAAFBB',

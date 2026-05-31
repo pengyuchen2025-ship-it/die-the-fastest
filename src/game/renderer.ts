@@ -1,5 +1,5 @@
 import {
-  GameState, Spike, PoisonPool, HealingBottle, Pillar, Player, FloatingText,
+  GameState, Spike, PoisonPool, LavaPool, HealingBottle, Pillar, Player, FloatingText,
 } from './types';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, WALL_THICKNESS, TILE_SIZE, COLORS,
@@ -25,6 +25,7 @@ export function renderGame(
   drawWalls(ctx);
 
   for (const pool   of state.poisonPools)    drawPoisonPool(ctx, pool, animTime);
+  for (const pool   of state.lavaPools)      drawLavaPool(ctx, pool, animTime);
   for (const spike  of state.spikes)         drawSpike(ctx, spike, animTime);
   for (const pillar of state.pillars)        drawPillar(ctx, pillar, animTime);
   for (const bottle of state.healingBottles) drawBottle(ctx, bottle, animTime);
@@ -274,6 +275,53 @@ function drawPoisonPool(ctx: CanvasRenderingContext2D, pool: PoisonPool, animTim
     ctx.fillText('+', bx, by);
   }
   ctx.textBaseline = 'alphabetic';
+
+  ctx.globalAlpha = 1;
+}
+
+// ─── Lava pool ────────────────────────────────────────────────────────────
+
+function drawLavaPool(ctx: CanvasRenderingContext2D, pool: LavaPool, animTime: number) {
+  const { x, y, w, h } = pool;
+
+  if (pool.state === 'hidden') return;
+
+  if (pool.state === 'warning') {
+    drawWarning(ctx, x, y, w, h, COLORS.LAVA,
+      stateProgress(pool.stateTimer, pool.warningDuration), animTime);
+    return;
+  }
+
+  const scale     = appearScale(pool.stateTimer, pool.activeDuration);
+  const baseAlpha = Math.min(1, scale * 2);
+  ctx.globalAlpha = baseAlpha;
+
+  // Base
+  ctx.fillStyle = COLORS.LAVA_BG;
+  ctx.fillRect(x, y, w, h);
+
+  // Animated inner glow
+  const s = Math.sin(animTime * 3) * 0.5 + 0.5;
+  ctx.fillStyle = `rgba(122,42,0,${0.5 + s * 0.35})`;
+  ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+
+  // Border
+  ctx.strokeStyle = COLORS.LAVA;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+  // Rising fire sparks (small orange/yellow dots)
+  for (let i = 0; i < 6; i++) {
+    const bx    = x + 12 + (i * (w - 24)) / 5;
+    const phase = (animTime * 1.8 + i * 1.1) % 1;
+    const by    = y + h - 6 - phase * (h - 16);
+    const r     = 2.5 + Math.sin(animTime * 4 + i) * 1;
+    ctx.globalAlpha = baseAlpha * (0.7 - phase * 0.55);
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fillStyle = phase < 0.5 ? '#FF6B1A' : '#FFD700';
+    ctx.fill();
+  }
 
   ctx.globalAlpha = 1;
 }
