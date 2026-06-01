@@ -210,6 +210,7 @@ function updatePoison(state: GameState, dt: number) {
       continue;
     }
     if (rectsOverlap(p, pool)) {
+      if (pool.damageTimer === 0) pool.damageTimer = POISON_INTERVAL; // immediate first tick
       pool.damageTimer += dt;
       while (pool.damageTimer >= POISON_INTERVAL) {
         pool.damageTimer -= POISON_INTERVAL;
@@ -237,6 +238,7 @@ function updateLava(state: GameState, dt: number) {
       continue;
     }
     if (rectsOverlap(p, pool)) {
+      if (pool.damageTimer === 0) pool.damageTimer = LAVA_INTERVAL; // immediate first tick
       pool.damageTimer += dt;
       while (pool.damageTimer >= LAVA_INTERVAL) {
         pool.damageTimer -= LAVA_INTERVAL;
