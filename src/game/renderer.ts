@@ -5,6 +5,15 @@ import {
   CANVAS_WIDTH, CANVAS_HEIGHT, WALL_THICKNESS, TILE_SIZE, COLORS,
 } from './constants';
 
+// Timeline constants for rule-break animation (seconds)
+const RB_FREEZE_END   = 0.3;
+const RB_GLITCH_START = 0.3;
+const RB_MSG1_START   = 1.0;
+const RB_MSG2_START   = 1.7;
+const RB_MSG3_START   = 2.4;
+const RB_FLYOFF_START = 3.0;
+const RB_FLASH_START  = 3.4;
+
 // ─── Entry point ──────────────────────────────────────────────────────────
 
 export function renderGame(
@@ -667,6 +676,154 @@ function drawHUD(
     'WASD / 方向键  ·  R 重开  ·  目标：15秒内HP归零',
     CANVAS_WIDTH / 2, CANVAS_HEIGHT - 12,
   );
+}
+
+// ─── Rule-break glitch animation ─────────────────────────────────────────
+
+export function drawRuleBreakAnim(
+  ctx: CanvasRenderingContext2D,
+  state: { ruleBreakTimer: number; timeElapsed: number; player: { hp: number; maxHp: number } },
+  bestTime: number | null,
+  animTime: number,
+) {
+  const t = state.ruleBreakTimer;
+
+  // ── Phase 0: freeze — draw static game-over frame ──
+  drawBackground(ctx);
+  drawFloor(ctx);
+  drawWalls(ctx);
+
+  // Screen shake during glitch phases
+  const shakeAmt = t > RB_GLITCH_START && t < RB_FLASH_START
+    ? (Math.random() - 0.5) * (t < RB_FLYOFF_START ? 4 : 8) : 0;
+  ctx.save();
+  ctx.translate(shakeAmt, shakeAmt * 0.6);
+
+  // ── Pixel fragment debris on edges (after flyoff phase) ──
+  if (t >= RB_FLYOFF_START) {
+    const progress = Math.min(1, (t - RB_FLYOFF_START) / 0.8);
+    const fragmentColors = ['#7C3AED','#5DA9FF','#FF4D4D','#FFD700','#39FF88','#FF7A1A'];
+    ctx.save();
+    // Use seeded-like pattern so fragments don't jump every frame
+    for (let i = 0; i < 60; i++) {
+      const seed = i * 137.508;
+      const ex = (Math.sin(seed * 0.1) * 0.5 + 0.5) * CANVAS_WIDTH;
+      const ey = (Math.cos(seed * 0.07) * 0.5 + 0.5) * CANVAS_HEIGHT;
+      // Only show fragments near edges
+      const nearEdge = ex < 80 || ex > CANVAS_WIDTH - 80 || ey < 80 || ey > CANVAS_HEIGHT - 80;
+      if (!nearEdge) continue;
+      const size = 3 + (seed % 7);
+      const alpha = progress * (0.4 + (seed % 3) * 0.2) * (1 - Math.abs(Math.sin(animTime * 3 + i)));
+      ctx.globalAlpha = Math.max(0, alpha);
+      ctx.fillStyle = fragmentColors[i % fragmentColors.length];
+      ctx.fillRect(ex, ey, size, size);
+    }
+    ctx.restore();
+  }
+
+  // ── Background inversion flash ──
+  if (t >= RB_FLASH_START) {
+    const progress = (t - RB_FLASH_START) / 0.6;
+    const alpha = Math.max(0, 0.55 - progress * 0.55) * (Math.sin(animTime * 18) * 0.5 + 0.5);
+    ctx.fillStyle = `rgba(200,180,255,${alpha.toFixed(3)})`;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
+
+  ctx.restore();
+
+  // ── Glitched HUD ──
+  if (t >= RB_GLITCH_START) {
+    const glitchPhase = Math.sin(animTime * 24) > 0; // fast flicker
+    const hudY = 8;
+
+    // HP label
+    ctx.font      = '13px "Press Start 2P", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = glitchPhase ? '#FF4D4D' : '#7C3AED';
+    ctx.fillText('HP', 48, hudY + 16);
+
+    // HP bar — glitch fill
+    const barX = 82, barY = hudY + 4, barW = 170, barH = 18;
+    ctx.fillStyle = '#3A1A1C';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillStyle = glitchPhase ? '#7C3AED' : '#FF4D4D';
+    ctx.fillRect(barX + 1, barY + 1, (barW - 2) * (Math.sin(animTime * 7) * 0.5 + 0.5), barH - 2);
+    ctx.strokeStyle = '#FF4D4D88';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX, barY, barW, barH);
+
+    // HP number
+    ctx.fillStyle = '#FF4D4D';
+    ctx.font      = '12px "Press Start 2P", monospace';
+    ctx.textAlign = 'left';
+    const hpText = glitchPhase ? 'HP：？？？' : 'HP：///';
+    const hpOffX = t >= RB_FLYOFF_START ? -(t - RB_FLYOFF_START) * 600 : 0;
+    ctx.fillText(hpText, barX + barW + 8 + hpOffX, hudY + 16);
+
+    // Timer — glitch
+    const timerOffX = t >= RB_FLYOFF_START ? -(t - RB_FLYOFF_START) * 500 : 0;
+    ctx.save();
+    ctx.font      = '17px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = glitchPhase ? '#FF4D4D' : '#7C3AED';
+    ctx.fillText('时间：无效', CANVAS_WIDTH / 2 + timerOffX, hudY + 18);
+    ctx.font      = '9px "Press Start 2P", monospace';
+    ctx.fillStyle = '#A8A3C7';
+    ctx.fillText('ERROR', CANVAS_WIDTH / 2 + timerOffX, hudY + 31);
+    ctx.restore();
+
+    // Best time — glitch
+    const bestOffX = t >= RB_FLYOFF_START ? (t - RB_FLYOFF_START) * 600 : 0;
+    ctx.textAlign = 'right';
+    ctx.font      = '10px "Press Start 2P", monospace';
+    ctx.fillStyle = glitchPhase ? '#FF4D4D' : '#5DA9FF';
+    ctx.fillText('最佳: 已删除', CANVAS_WIDTH - 46 + bestOffX, hudY + 16);
+  }
+
+  // ── Center messages ──
+  const messages: [number, string, string][] = [
+    [RB_MSG1_START, '规则失效。',       '#FF4D4D'],
+    [RB_MSG2_START, '评分系统已崩坏。', '#FFD700'],
+    [RB_MSG3_START, '你比规则更快。',   '#B380FF'],
+  ];
+
+  for (const [start, text, color] of messages) {
+    if (t < start) continue;
+    const elapsed = t - start;
+    const alpha   = Math.min(1, elapsed / 0.25);
+    const glitch  = Math.sin(animTime * 30 + start * 10) * (elapsed < 0.5 ? 6 : 1.5);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font        = '22px "Press Start 2P", monospace';
+    ctx.textAlign   = 'center';
+    ctx.fillStyle   = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 20;
+    ctx.fillText(text, CANVAS_WIDTH / 2 + glitch, CANVAS_HEIGHT / 2 + 30);
+    // Chromatic aberration offset
+    ctx.globalAlpha = alpha * 0.4;
+    ctx.fillStyle   = '#FF0060';
+    ctx.fillText(text, CANVAS_WIDTH / 2 + glitch + 3, CANVAS_HEIGHT / 2 + 30);
+    ctx.shadowBlur  = 0;
+    ctx.restore();
+  }
+
+  // ── Glitch scanlines overlay during animation ──
+  if (t >= RB_GLITCH_START) {
+    ctx.save();
+    const scanAlpha = 0.06 + Math.sin(animTime * 12) * 0.03;
+    ctx.fillStyle = `rgba(0,0,0,${scanAlpha})`;
+    for (let y = 0; y < CANVAS_HEIGHT; y += 4) {
+      ctx.fillRect(0, y, CANVAS_WIDTH, 2);
+    }
+    // Occasional horizontal glitch bars
+    if (Math.sin(animTime * 17) > 0.7) {
+      const barY = Math.floor(Math.sin(animTime * 23) * 0.5 + 0.5) * CANVAS_HEIGHT;
+      ctx.fillStyle = `rgba(124,58,237,0.15)`;
+      ctx.fillRect(0, barY, CANVAS_WIDTH, 6 + Math.abs(Math.sin(animTime * 11)) * 12);
+    }
+    ctx.restore();
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────

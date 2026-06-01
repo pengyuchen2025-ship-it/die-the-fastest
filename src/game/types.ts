@@ -1,4 +1,4 @@
-export type GamePhase = 'home' | 'playing' | 'win' | 'lose';
+export type GamePhase = 'home' | 'playing' | 'win' | 'lose' | 'rule_break_anim' | 'rule_break';
 
 // warning = 出现前预警; active = 激活可交互; hidden = 消失等待
 export type EntityState = 'warning' | 'active' | 'hidden';
@@ -78,4 +78,5 @@ export interface GameState {
   timeRemaining: number;
   screenShake: number;
   keys: Set<string>;
+  ruleBreakTimer: number; // drives the glitch animation sequence
 }

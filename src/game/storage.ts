@@ -1,4 +1,13 @@
 const BEST_KEY = 'dtf_best_time_v1';
+const RULE_BREAK_KEY = 'dtf_rule_break_v1';
+
+export function getRuleBreakUnlocked(): boolean {
+  return localStorage.getItem(RULE_BREAK_KEY) === 'true';
+}
+
+export function saveRuleBreakUnlocked(): void {
+  localStorage.setItem(RULE_BREAK_KEY, 'true');
+}
 
 export function getBestTime(): number | null {
   const raw = localStorage.getItem(BEST_KEY);

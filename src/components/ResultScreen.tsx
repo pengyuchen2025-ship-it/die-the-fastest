@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getRank, getRankColor, getBestTime } from '../game/storage';
 
 interface WinProps {
@@ -153,6 +153,142 @@ export function LoseScreen({ remainingHp, onRestart, onHome }: LoseProps) {
         <Hint />
       </div>
     </Overlay>
+  );
+}
+
+// ─── Rule-break screen ────────────────────────────────────────────────────
+
+interface RuleBreakProps {
+  time: number;
+  onRestart: () => void;
+  onHome: () => void;
+}
+
+export function RuleBreakScreen({ time, onRestart, onHome }: RuleBreakProps) {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 80);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') onRestart();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onRestart]);
+
+  const glitch = tick % 3 === 0;
+  const colors = ['#B380FF', '#5DA9FF', '#FF4D4D', '#FFD700'];
+  const titleColor = colors[tick % colors.length];
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{ background: 'rgba(10, 8, 20, 0.97)', backdropFilter: 'blur(2px)' }}
+    >
+      {/* Edge glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{
+        boxShadow: 'inset 0 0 120px rgba(124,58,237,0.35), inset 0 0 60px rgba(93,169,255,0.2)',
+      }} />
+
+      {/* Scanlines */}
+      <div className="fixed inset-0 pointer-events-none" style={{
+        background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px)',
+      }} />
+
+      <div className="relative z-10 flex flex-col items-center gap-6 px-10 py-8"
+        style={{ minWidth: 360, maxWidth: 560 }}
+      >
+        {/* Title */}
+        <div style={{
+          fontFamily: '"Press Start 2P", monospace',
+          fontSize: 'clamp(22px, 4vw, 32px)',
+          color: titleColor,
+          textShadow: `0 0 30px ${titleColor}, 0 0 60px ${titleColor}`,
+          textAlign: 'center',
+          letterSpacing: '0.05em',
+          transform: glitch ? `translate(${(Math.random()-0.5)*6}px, 0)` : 'none',
+          transition: 'color 0.08s',
+        }}>
+          规则崩坏
+        </div>
+
+        {/* Glitch divider */}
+        <div style={{
+          width: '100%',
+          height: '2px',
+          background: `linear-gradient(90deg, transparent, ${titleColor}, #FF4D4D, transparent)`,
+          boxShadow: `0 0 8px ${titleColor}`,
+        }} />
+
+        {/* Stats */}
+        <div className="flex flex-col gap-4 items-center w-full">
+          <RuleStatRow label="归零用时" value={`${time.toFixed(2)} 秒`} color="#FFD700" glitch={glitch} />
+          <RuleStatRow label="评级" value="无法评级" color="#FF4D4D" glitch={glitch} />
+          <div className="w-full rounded px-4 py-3 text-center" style={{
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '11px',
+            color: '#B380FF',
+            border: '1px solid #3D1A7A',
+            background: '#110820',
+            lineHeight: 2.2,
+            textShadow: '0 0 8px #B380FF',
+          }}>
+            解锁称号<br />
+            <span style={{ fontSize: '13px', color: '#FFD700', textShadow: '0 0 12px #FFD700' }}>
+              比规则更快的人
+            </span>
+          </div>
+        </div>
+
+        {/* Glitch divider */}
+        <div style={{
+          width: '100%',
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, #FF4D4D44, #7C3AED44, transparent)',
+        }} />
+
+        {/* Buttons */}
+        <div className="flex gap-4">
+          <ArcadeBtn onClick={onRestart} primary>再来一次</ArcadeBtn>
+          <ArcadeBtn onClick={onHome}>返回首页</ArcadeBtn>
+        </div>
+
+        <p style={{
+          fontFamily: '"Press Start 2P", monospace',
+          fontSize: '10px',
+          color: '#3A2860',
+          marginTop: -8,
+        }}>
+          R 键重新开始
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function RuleStatRow({ label, value, color, glitch }: {
+  label: string; value: string; color: string; glitch: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '11px', color: '#6A5A9A' }}>
+        {label}:
+      </span>
+      <span style={{
+        fontFamily: '"Press Start 2P", monospace',
+        fontSize: '13px',
+        color,
+        textShadow: `0 0 8px ${color}`,
+        transform: glitch ? 'translate(2px, 0)' : 'none',
+        display: 'inline-block',
+      }}>
+        {value}
+      </span>
+    </div>
   );
 }
 

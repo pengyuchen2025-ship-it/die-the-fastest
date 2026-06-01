@@ -2,11 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { GamePhase } from './game/types';
 import { GameCanvas } from './game/GameCanvas';
 import { HomePage } from './components/HomePage';
-import { WinScreen, LoseScreen } from './components/ResultScreen';
+import { WinScreen, LoseScreen, RuleBreakScreen } from './components/ResultScreen';
 
 type GameResult =
   | { type: 'win'; time: number }
-  | { type: 'lose'; hp: number };
+  | { type: 'lose'; hp: number }
+  | { type: 'rule_break'; time: number };
 
 export default function App() {
   const [phase, setPhase] = useState<GamePhase>('home');
@@ -29,6 +30,11 @@ export default function App() {
     setPhase('lose');
   }, []);
 
+  const handleRuleBreak = useCallback((time: number) => {
+    setResult({ type: 'rule_break', time });
+    setPhase('rule_break');
+  }, []);
+
   // Full restart — remount canvas so game state is completely fresh
   const handleRestart = useCallback(() => {
     setResult(null);
@@ -46,7 +52,7 @@ export default function App() {
     <div className="min-h-screen bg-[#14111F] flex items-center justify-center overflow-hidden">
       {phase === 'home' && <HomePage onStart={handleStart} />}
 
-      {(phase === 'playing' || phase === 'win' || phase === 'lose') && (
+      {(phase === 'playing' || phase === 'win' || phase === 'lose' || phase === 'rule_break_anim' || phase === 'rule_break') && (
         <div className="relative">
           {/* Canvas always rendered while in game to avoid flicker */}
           <div
@@ -59,6 +65,7 @@ export default function App() {
               key={gameKey}
               onWin={handleWin}
               onLose={handleLose}
+              onRuleBreak={handleRuleBreak}
             />
           </div>
 
@@ -73,6 +80,13 @@ export default function App() {
           {phase === 'lose' && result?.type === 'lose' && (
             <LoseScreen
               remainingHp={result.hp}
+              onRestart={handleRestart}
+              onHome={handleHome}
+            />
+          )}
+          {phase === 'rule_break' && result?.type === 'rule_break' && (
+            <RuleBreakScreen
+              time={result.time}
               onRestart={handleRestart}
               onHome={handleHome}
             />

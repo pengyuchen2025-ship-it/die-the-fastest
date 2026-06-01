@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBestTime } from '../game/storage';
+import { getBestTime, getRuleBreakUnlocked } from '../game/storage';
 
 interface Props {
   onStart: () => void;
@@ -7,6 +7,7 @@ interface Props {
 
 export function HomePage({ onStart }: Props) {
   const best = getBestTime();
+  const ruleBreakUnlocked = getRuleBreakUnlocked();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#14111F] px-6 select-none">
@@ -147,6 +148,34 @@ export function HomePage({ onStart }: Props) {
           }}>
             ⭐ 最佳成绩: {best.toFixed(2)}s
           </p>
+        )}
+
+        {/* Rule-break unlock badge */}
+        {ruleBreakUnlocked && (
+          <div className="flex flex-col items-center gap-1" style={{
+            border: '1px solid #3D1A7A',
+            borderRadius: '8px',
+            background: '#110820',
+            padding: '10px 20px',
+            textAlign: 'center',
+          }}>
+            <p style={{
+              fontFamily: '"Press Start 2P", monospace',
+              fontSize: '11px',
+              color: '#B380FF',
+              textShadow: '0 0 10px #B380FF',
+            }}>
+              已发现隐藏事件：规则崩坏
+            </p>
+            <p style={{
+              fontFamily: '"Press Start 2P", monospace',
+              fontSize: '9px',
+              color: '#4A3070',
+              marginTop: '4px',
+            }}>
+              规则记住了你。
+            </p>
+          </div>
         )}
 
         {/* Start button */}

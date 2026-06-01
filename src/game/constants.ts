@@ -8,6 +8,8 @@ export const PLAYER_SPEED = 200;
 export const PLAYER_MAX_HP = 10;
 
 export const GAME_DURATION = 15;
+export const RULE_BREAK_THRESHOLD = 3.0; // seconds
+export const RULE_BREAK_ANIM_DURATION = 4.2; // total canvas animation length
 
 // Spike (normal): warning → active → hidden
 export const SPIKE_SIZE = 44;

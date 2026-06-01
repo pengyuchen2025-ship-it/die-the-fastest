@@ -7,6 +7,7 @@ import {
   LAVA_DAMAGE, LAVA_INTERVAL,
   HEAL_AMOUNT,
   GAME_DURATION,
+  RULE_BREAK_THRESHOLD, RULE_BREAK_ANIM_DURATION,
 } from './constants';
 import {
   createPlayer, createSpikes, createPoisonPools, createLavaPools,
@@ -46,6 +47,7 @@ export function createInitialState(): GameState {
     timeRemaining: GAME_DURATION,
     screenShake: 0,
     keys: new Set(),
+    ruleBreakTimer: 0,
   };
 }
 
@@ -57,6 +59,13 @@ export function resetState(state: GameState): void {
 // ─── Main update ──────────────────────────────────────────────────────────
 
 export function updateGame(state: GameState, dt: number): void {
+  if (state.phase === 'rule_break_anim') {
+    state.ruleBreakTimer += dt;
+    if (state.ruleBreakTimer >= RULE_BREAK_ANIM_DURATION) {
+      state.phase = 'rule_break';
+    }
+    return;
+  }
   if (state.phase !== 'playing') return;
 
   state.timeElapsed += dt;
@@ -80,8 +89,13 @@ export function updateGame(state: GameState, dt: number): void {
 
   if (p.hp <= 0) {
     p.hp = 0;
-    state.phase = 'win';
-    playWinSound();
+    if (state.timeElapsed <= RULE_BREAK_THRESHOLD) {
+      state.phase = 'rule_break_anim';
+      state.ruleBreakTimer = 0;
+    } else {
+      state.phase = 'win';
+      playWinSound();
+    }
     return;
   }
   if (state.timeRemaining <= 0) {

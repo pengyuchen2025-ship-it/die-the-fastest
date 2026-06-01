@@ -2,15 +2,16 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { GameState } from './types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
 import { createInitialState, updateGame, resetState } from './gameLogic';
-import { renderGame } from './renderer';
-import { getBestTime, saveBestTime } from './storage';
+import { renderGame, drawRuleBreakAnim } from './renderer';
+import { getBestTime, saveBestTime, saveRuleBreakUnlocked } from './storage';
 
 interface Props {
   onWin: (time: number) => void;
   onLose: (remainingHp: number) => void;
+  onRuleBreak: (time: number) => void;
 }
 
-export function GameCanvas({ onWin, onLose }: Props) {
+export function GameCanvas({ onWin, onLose, onRuleBreak }: Props) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const stateRef   = useRef<GameState>(createInitialState());
   const lastTsRef  = useRef<number>(0);
@@ -30,7 +31,12 @@ export function GameCanvas({ onWin, onLose }: Props) {
 
     const state = stateRef.current;
     updateGame(state, dt);
-    renderGame(ctx, state, bestRef.current, animTRef.current);
+
+    if (state.phase === 'rule_break_anim') {
+      drawRuleBreakAnim(ctx, state, bestRef.current, animTRef.current);
+    } else {
+      renderGame(ctx, state, bestRef.current, animTRef.current);
+    }
 
     if (state.phase === 'win') {
       saveBestTime(state.timeElapsed);
@@ -42,9 +48,16 @@ export function GameCanvas({ onWin, onLose }: Props) {
       onLose(state.player.hp);
       return;
     }
+    if (state.phase === 'rule_break') {
+      saveBestTime(state.timeElapsed);
+      saveRuleBreakUnlocked();
+      bestRef.current = getBestTime();
+      onRuleBreak(state.timeElapsed);
+      return;
+    }
 
     rafRef.current = requestAnimationFrame(loop);
-  }, [onWin, onLose]);
+  }, [onWin, onLose, onRuleBreak]);
 
   // Restart mid-game — reset state and continue loop
   const restart = useCallback(() => {
